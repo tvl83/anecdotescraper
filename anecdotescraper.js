@@ -63,16 +63,22 @@ var anecdotescraper = {
                         //console.log("element: " + element.tagName);
                         jQuery(this).children('li').each(function (index, element) {
                             //console.log('inside UL.children(li): ' + index);
-
+                            //console.log(element);
                             jQuery(this).children().each(function (index, element) {
                               //console.log('inside li children');
+                              //console.log(index + ', anecdoteID: ' + anecdoteID);
                               //console.log(element);
                               //console.log("element.textContent: " + element.textContent);
                               //console.log("element.nextSibling.data: " + element.nextSibling.data);
+                                if(element.tagName == 'SPAN') {
+                                    anecdotescraper.conversation.speaker = element.textContent; // get span content
+                                    if (element.nextSibling !== null)
+                                        anecdotescraper.conversation.text = element.nextSibling.data; // get sibling(text) content
+                                } else {
+                                    //console.log("NOT SPAN");
+                                    //console.log(element);
+                                }
 
-                              anecdotescraper.conversation.speaker = element.textContent; // get span content
-                              if(element.nextSibling !== null)
-                                  anecdotescraper.conversation.text = element.nextSibling.data; // get sibling(text) content
                               anecdotescraper.story.conversation.push(anecdotescraper.conversation);
                               anecdotescraper.conversation = {};
                             }); // END this.children().each
@@ -80,13 +86,22 @@ var anecdotescraper = {
                         });// end this.children('li')
                     }); // end this.each
                 } else if (element.tagName == 'P') { // end if tagname == ul
-                  //console.log("anecdoteID: " + anecdoteID + ", tagName: " + element.tagName);
-                  var p = element.textContent;
-                  p = p.replace('\n', ' ');
-                  anecdotescraper.conversation.paragraph = p;
+                    //console.log("anecdoteID: " + anecdoteID + ", tagName: " + element.tagName);
+                    anecdotescraper.conversation.paragraph = element.textContent;
 
-                  anecdotescraper.story.conversation.push(anecdotescraper.conversation);
-                  anecdotescraper.conversation = {};
+                    anecdotescraper.story.conversation.push(anecdotescraper.conversation);
+                    if(element.nextSibling) {
+                        //console.log("this");
+                        //console.log(element);
+                        if (element.nextSibling.tagName === 'UL') {
+                            jQuery.each(element.nextSibling.children, function(e,v){
+                                var conversation = {};
+                                conversation.text = v.textContent;
+                                anecdotescraper.story.conversation.push(conversation);
+                            });
+                        }
+                    }
+                    anecdotescraper.conversation = {};
                 }
             }); // end this.children()
             anecdotescraper.story.id = anecdoteID;
